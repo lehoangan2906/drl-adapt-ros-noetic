@@ -1,0 +1,19 @@
+<launch>
+  <!-- Node to compute and publish sub-goal using pure pursuit -->
+  <node name="pure_pursuit" pkg="drl_adapt_nav" type="pure_pursuit.py" output="screen" required="true">
+    <remap from="path" to="move_base/NavfnROS/plan"/> <!-- Remap path input -->
+    <param name="rate" type="double" value="20"/> <!-- Update rate: 20 Hz -->
+  </node>
+
+  <!-- Node to publish CNN input data (e.g., ped_pos_map, scan) -->
+  <node name="cnn_data_pub" pkg="drl_adapt_nav" type="cnn_data_pub.py"/>
+
+  <!-- Node to publish robot pose -->
+  <node name="robot_pose_pub" pkg="drl_adapt_nav" type="robot_pose_pub.py"/>
+
+  <!-- Node to publish pedestrian kinematics from Pedsim -->
+  <node name="track_ped_pub" pkg="drl_adapt_nav" type="track_ped_pub.py" output="screen"/>
+
+  <!-- Node to visualize goal in RViz -->
+  <node name="goal_visualize" pkg="drl_adapt_nav" type="goal_visualize.py" output="screen"/>
+</launch>

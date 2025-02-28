@@ -1,0 +1,17 @@
+<launch>
+  <!-- Default model file path for DRL-ADAPT policy -->
+  <arg name="model_file" default="$(find drl_adapt_nav)/src/model/drl_adapt.zip"/>
+
+  <!-- Include velocity smoother for smoother robot motion -->
+  <include file="$(find turtlebot_teleop)/launch/includes/velocity_smoother.launch.xml"/>
+
+  <!-- Node to run DRL-ADAPT inference, outputting velocity commands -->
+  <node name="drl_adapt_cmd" pkg="drl_adapt_nav" type="drl_adapt_inference.py" output="screen">
+    <param name="model_file" value="$(arg model_file)" type="string"/> <!-- Path to trained model -->
+  </node>
+
+  <!-- Node to publish mixed velocity commands to robot -->
+  <node name="mix_cmd_vel" pkg="drl_adapt_nav" type="cmd_vel_pub.py" output="screen">
+    <remap from="cmd_vel" to="teleop_velocity_smoother/raw_cmd_vel"/> <!-- Remap to smoother input -->
+  </node>
+</launch>

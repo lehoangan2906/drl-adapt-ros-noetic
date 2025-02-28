@@ -1,0 +1,47 @@
+<launch>
+  <!-- Default arguments for training setup -->
+  <arg name="scene_file" default="$(find pedsim_simulator)/scenarios/eng_hall.xml"/> <!-- Pedsim scenario -->
+  <arg name="world_name" default="$(find pedsim_gazebo_plugin)/worlds/eng_hall.world"/> <!-- Gazebo world -->
+  <arg name="gui" default="true" doc="Bring up the Gazebo graphical interface"/>
+  <arg name="pose_initial_x" default="1.0"/> <!-- Initial robot x position -->
+  <arg name="pose_initial_y" default="1.0"/> <!-- Initial robot y position -->
+  <arg name="map_file" default="$(find robot_gazebo)/maps/gazebo_eng_lobby/gazebo_eng_lobby.yaml"/> <!-- Map file -->
+  <arg name="initial_pose_x" default="1.0"/> <!-- Initial pose x for AMCL -->
+  <arg name="initial_pose_y" default="0.0"/> <!-- Initial pose y for AMCL -->
+  <arg name="initial_pose_a" default="0.13"/> <!-- Initial yaw for AMCL -->
+  <arg name="model_file" default="$(find drl_adapt_nav)/src/model/drl_pre_train.zip"/> <!-- Pre-trained DRL-ADAPT model -->
+  <arg name="log_dir" default="$(find drl_adapt_nav)/src/runs"/> <!-- Log directory for training -->
+  <arg name="output" default="log"/> <!-- Output type -->
+  <arg name="enable_opencv" default="true"/> <!-- Enable OpenCV (unused here) -->
+  <arg name="enable_console_output" default="true"/> <!-- Enable console output -->
+  <arg name="rviz" default="true"/> <!-- Launch RViz -->
+
+  <!-- Launch Pedsim and Gazebo simulation -->
+  <include file="$(find pedsim_simulator)/launch/robot.launch">
+    <arg name="scene_file" value="$(arg scene_file)"/>
+    <arg name="world_name" value="$(arg world_name)"/>
+    <arg name="gui" value="$(arg gui)"/>
+    <arg name="pose_initial_x" value="$(arg pose_initial_x)"/>
+    <arg name="pose_initial_y" value="$(arg pose_initial_y)"/>
+  </include>
+
+  <!-- Launch AMCL for localization -->
+  <include file="$(find robot_gazebo)/launch/amcl_demo_drl.launch">
+    <arg name="map_file" value="$(arg map_file)"/>
+    <arg name="initial_pose_x" value="$(arg initial_pose_x)"/>
+    <arg name="initial_pose_y" value="$(arg initial_pose_y)"/>
+    <arg name="initial_pose_a" value="$(arg initial_pose_a)"/>
+  </include>
+
+  <!-- Launch CNN data publishing -->
+  <include file="$(find drl_adapt_nav)/launch/nav_cnn_data.launch"/>
+
+  <!-- Launch DRL-ADAPT training -->
+  <include file="$(find drl_adapt_nav)/launch/drl_adapt_train.launch">
+    <arg name="model_file" value="$(arg model_file)"/>
+    <arg name="log_dir" value="$(arg log_dir)"/>
+  </include>
+
+  <!-- Launch RViz for visualization if enabled -->
+  <include file="$(find robot_gazebo)/launch/view_navigation.launch" if="$(arg rviz)"/>
+</launch>

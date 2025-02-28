@@ -1,0 +1,19 @@
+<launch>
+  <!-- Default arguments for training -->
+  <arg name="model_file" default="$(find drl_adapt_nav)/src/model/drl_pre_train.zip"/> <!-- Pre-trained model -->
+  <arg name="log_dir" default="$(find drl_adapt_nav)/src/drl_adapt_nav/src/runs"/> <!-- Log directory -->
+
+  <!-- Include velocity smoother for smoother robot motion -->
+  <include file="$(find turtlebot_teleop)/launch/includes/velocity_smoother.launch.xml"/>
+
+  <!-- Node to train DRL-ADAPT policy using PPO -->
+  <node name="drl_adapt_cmd" pkg="drl_adapt_nav" type="drl_adapt_train.py" output="screen">
+    <param name="model_file" value="$(arg model_file)" type="string"/> <!-- Path to pre-trained model -->
+    <param name="log_dir" value="$(arg log_dir)" type="string"/> <!-- Log directory for training -->
+  </node>
+
+  <!-- Node to publish mixed velocity commands to robot -->
+  <node name="mix_cmd_vel" pkg="drl_adapt_nav" type="cmd_vel_pub.py" output="screen">
+    <remap from="cmd_vel" to="teleop_velocity_smoother/raw_cmd_vel"/> <!-- Remap to smoother input -->
+  </node>
+</launch>
