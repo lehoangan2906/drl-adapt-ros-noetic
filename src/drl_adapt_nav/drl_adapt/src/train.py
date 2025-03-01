@@ -76,11 +76,13 @@ policy_kwargs = dict(
     net_arch=[dict(pi=[256], vf=[128])]                 # Actor and value network hidden layers size
 )
 
+# raw training:
+model = PPO("CnnPolicy", env, policy_kwargs=policy_kwargs, learning_rate=1e-3, verbose=2, tensorboard_log=log_dir, n_steps=512, n_epochs=10, batch_size=128)
 
-# Loads pre-trained model and links it to the environment
-kwargs = {'tensorboard_log': log_dir, 'verbose': 2, 'n_epochs':10, 'n_steps': 512, 'batch_size': 128, 'learning_rate': 5e-5}
-model_file = rospy.get_param('~model_file', "./model/drl_pre_train.zip")    # Pre-trained model path
-model = PPO.load(model_file, env=env, policy_kwargs=policy_kwargs, **kwargs) # Load pre-trained model with env and policy_kwargs
+# Continue training: Loads pre-trained model and links it to the environment
+# kwargs = {'tensorboard_log': log_dir, 'verbose': 2, 'n_epochs':10, 'n_steps': 512, 'batch_size': 128, 'learning_rate': 5e-5}
+# model_file = rospy.get_param('~model_file', "./model/drl_pre_train.zip")    # Pre-trained model path
+# model = PPO.load(model_file, env=env, policy_kwargs=policy_kwargs, **kwargs) # Load pre-trained model with env and policy_kwargs
 
 
 # Train the model
