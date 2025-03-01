@@ -10,6 +10,14 @@ Publishes pedestrian kinematic maps, lidar data, goals, and velocity as CNN_data
     + Robot velocity via (/mobile_base/commands/velocity)
 
 - Processes this data into the CNN_data message format and publishes it on /cnn_data at 20 Hz
+
+- The CNN_data message, containing:
+    + ped_pos_map: 12800 elements (flattened 80x80x2 grid of pedestrian velocities).
+    + scan: 7200 elements (10 timestamps of 720 lidar points).
+    + scan_all: 1080 elements (full lidar scan).
+    + goal_cart: 2 elements (x, y sub-goal).
+    + vel: 2 elements (linear.x, angular.z).
+    + Unused fields (image_gray, depth, goal_final_polar) for compatibility.
 """
 
 import rospy
@@ -33,7 +41,7 @@ class CNNData:
         
         # Data initialization
         self.ped_pos_map = []           # Pedestrian kinematic map
-        self.scan = []                  # 180 degree front Lidar scan 
+        self.scan = []                  # list of 10 sublists containing 10 timestamps of 180 degree front Lidar scan 
         self.scan_all = np.zeros(1080)  # Full 270 degree lidar scan 
         self.goal_cart = np.zeros(2)    # Current sub-goal
         self.vel = np.zeros(2)          # Robot velocity
@@ -162,7 +170,7 @@ class CNNData:
         """Periodically publish CNN data every 1/20s."""
 
         self.ped_pos_map = self.ped_pos_map_tmp     # Update pedestrian map
-        self.scan.append(self.scan_tmp.tolist())    # Add latest scan to history
+        self.scan.append(self.scan_tmp.tolist())    # Add latest 720-point scan to history
         self.scan_all = self.scan_all_tmp           # Update full scan
 
         self.ts_cnt += 1    # Increment timestamp counter
@@ -172,7 +180,7 @@ class CNNData:
             cnn_data = CNN_data()       # Create CNN_data message
 
             cnn_data.ped_pos_map = [float(val) for sublist in self.ped_pos_map for subb in sublist for val in subb]     # Flatten 80x80x2 grid to 12800 array for ped_pos_map
-            cnn_data.scan = [float(val) for sublist in self.scan for val in sublist]  # Flatten scan history
+            cnn_data.scan = [float(val) for sublist in self.scan for val in sublist]  # Flatten 10x720 scan history
             cnn_data.scan_all = self.scan_all       # Full scan
             cnn_data.depth = []                     # Unused (no camera)
             cnn_data.image_gray = []                # Unused (no camera)
